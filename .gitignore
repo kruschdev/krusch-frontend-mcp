@@ -1,0 +1,7 @@
+node_modules/
+memory.db
+.env
+*.db-shm
+*.db-wal
+GEMINI_INFLIGHT.md
+.agent/
