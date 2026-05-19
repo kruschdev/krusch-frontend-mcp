@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="docs/banner.png" alt="krusch-frontend-mcp banner" width="800" />
+</p>
+
 # krusch-frontend-mcp
+
+> Give your AI agent a design eye — MCP tools for color theory, layout analysis, and design system enforcement.
 
 AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that provides deterministic design utilities and RAG-backed design rule retrieval for autonomous frontend development.
 
