@@ -1,7 +1,7 @@
 {
   "name": "krusch-frontend-mcp",
-  "version": "1.0.0",
-  "description": "AI-powered styling assistant MCP server with deterministic design utilities and RAG-backed design rule retrieval",
+  "version": "1.1.0",
+  "description": "AI-powered frontend design & styling MCP server — deterministic HSL/WCAG color math, AST CSS-to-Tailwind compiler, Figma token parser, canonical HTML/SVG component templates, and sqlite-vec RAG design rule retrieval.",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -12,7 +12,22 @@
     "test": "node --test tests/*.test.js",
     "seed": "node scripts/seed-design-rules.js && node scripts/ingest-refactoring-ui.js && node scripts/ingest-universal-a11y.js"
   },
-  "keywords": ["mcp", "frontend", "css", "tailwind", "design-system", "rag", "ollama", "figma"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "frontend",
+    "css",
+    "tailwind",
+    "design-system",
+    "design-tokens",
+    "wcag",
+    "accessibility",
+    "rag",
+    "sqlite-vec",
+    "ollama",
+    "figma"
+  ],
   "author": "kruschdev",
   "license": "MIT",
   "repository": {

@@ -4,16 +4,24 @@
 
 # krusch-frontend-mcp
 
-> Give your AI agent a design eye — MCP tools for color theory, layout analysis, and design system enforcement.
+> Give your AI agent a design eye — MCP tools for color theory, layout analysis, canonical component templates, and design system enforcement.
 
-AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that provides deterministic design utilities and RAG-backed design rule retrieval for autonomous frontend development.
+[![Node.js 22+](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![MCP: 12 Tools](https://img.shields.io/badge/MCP-12%20Tools-blue.svg)](https://modelcontextprotocol.io/)
+[![Storage: sqlite-vec](https://img.shields.io/badge/Storage-sqlite--vec%20RAG-lightgrey.svg)](#architecture)
+[![Tests: 32 Passed](https://img.shields.io/badge/tests-32%20passed-brightgreen.svg)](#development)
+[![M8ven Score](https://m8ven.ai/badge/mcp/kruschdev/krusch-frontend-mcp)](https://m8ven.ai/mcp/kruschdev/krusch-frontend-mcp?s=readme)
+
+AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that provides deterministic design utilities, canonical HTML/SVG layout primitives, and RAG-backed design rule retrieval for autonomous frontend development.
 
 ## Features
 
-- **8 MCP tools** — mix of deterministic algorithms and LLM-assisted generation
+- **12 MCP tools** — deterministic CSS/color algorithms, canonical component templates, provenance graph traversal, and LLM-assisted generation
 - **42 curated design rules** — WCAG accessibility, Refactoring UI heuristics, typography, spacing, and more
-- **Figma token ingestion** — parse design system JSON directly into the RAG store
-- **sqlite-vec powered** — high-performance vector search for semantic rule retrieval
+- **Canonical template substrate** — bit-for-bit HTML/SVG component templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`) preventing ad-hoc layout drift
+- **Figma token ingestion** — parse design system JSON directly into CSS custom properties or the RAG store
+- **sqlite-vec powered** — high-performance vector search and memory lineage provenance for semantic rule retrieval
 - **Fleet-aware Ollama routing** — optional multi-node load balancing for embeddings
 
 ## Requirements
@@ -82,9 +90,9 @@ Add to your MCP client configuration:
 }
 ```
 
-## Tools
+## Tools (12 Tools)
 
-### Deterministic (no LLM required)
+### Deterministic & Canonical Primitives (no LLM required)
 
 | Tool | Description |
 |------|-------------|
@@ -92,13 +100,17 @@ Add to your MCP client configuration:
 | `css_to_tailwind` | AST-based CSS → Tailwind class mapping (~230 entries + shorthand expansion) |
 | `generate_css_variables_from_figma` | Parse Figma JSON tokens into a CSS `:root` block with custom properties |
 | `generate_responsive_breakpoints` | CSS media query generation with customizable breakpoint widths |
+| `get_canonical_template` | Retrieve authoritative HTML/SVG component templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`) |
+| `list_canonical_templates` | List all available canonical HTML and SVG design templates |
 
-### RAG-powered (requires Ollama for embeddings)
+### RAG & Provenance Lineage (SQLite + sqlite-vec)
 
 | Tool | Description |
 |------|-------------|
 | `ingest_figma_tokens` | Embed and store Figma JSON tokens in the vector database |
 | `query_design_rules` | Semantic search over 42 curated design rules with optional paradigm filter |
+| `frontend_get_provenance` | Trace version history and provenance of a design rule or token in SQLite |
+| `frontend_traverse_graph` | Traverse parent/child lineage graphs for frontend design rules |
 
 ### LLM-assisted (requires Ollama for inference)
 

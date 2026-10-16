@@ -4,4 +4,5 @@ memory.db
 *.db-shm
 *.db-wal
 GEMINI_INFLIGHT.md
+JEAN_INFLIGHT.md
 .agent/
