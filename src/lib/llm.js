@@ -4,6 +4,9 @@
  * Uses native fetch with AbortController timeout.
  */
 
+import { OLLAMA_URL } from '../config.js';
+import { httpPost } from './httpClient.js';
+
 /**
  * @typedef {object} LLMConfig
  * @property {'ollama'} provider - LLM provider (only Ollama supported).
@@ -21,7 +24,7 @@
  * @returns {Promise<string>} Raw text response.
  */
 export async function chat(systemPrompt, userMessage, config) {
-    const ollamaUrl = config.apiUrl || process.env.OLLAMA_URL || 'http://localhost:11434';
+    const ollamaUrl = config.apiUrl || OLLAMA_URL;
     const url = `${ollamaUrl}/v1/chat/completions`;
     const timeoutMs = config.timeout || 30_000;
 
@@ -29,11 +32,9 @@ export async function chat(systemPrompt, userMessage, config) {
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
+        const res = await httpPost(
+            url,
+            {
                 model: config.model,
                 messages: [
                     { role: 'system', content: systemPrompt },
@@ -42,8 +43,9 @@ export async function chat(systemPrompt, userMessage, config) {
                 stream: false,
                 temperature: config.temperature ?? 0.7,
                 max_tokens: config.maxTokens ?? 2000,
-            }),
-        });
+            },
+            controller.signal
+        );
 
         if (!res.ok) {
             const err = await res.text();

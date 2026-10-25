@@ -25,7 +25,7 @@ test('getCanonicalTemplate throws on unknown template', () => {
   }, /Unknown template/);
 });
 
-import { FRONTEND_TOOL_DEFINITIONS } from '../src/index.js';
+import { FRONTEND_TOOL_DEFINITIONS, FRONTEND_TOOL_CAPABILITIES } from '../src/index.js';
 
 test('listCanonicalTemplates returns all available keys', () => {
   const list = listCanonicalTemplates();
@@ -36,8 +36,12 @@ test('listCanonicalTemplates returns all available keys', () => {
   assert.ok(keys.includes('deadbolt-svg'));
 });
 
-test('MCP Server: all 12 tools declare explicit boolean behavioral annotations', () => {
+test('MCP Server: all 12 tools declare explicit boolean behavioral annotations and capabilities map', () => {
   assert.strictEqual(FRONTEND_TOOL_DEFINITIONS.length, 12);
+  assert.strictEqual(typeof FRONTEND_TOOL_CAPABILITIES.getCanonicalTemplate, 'function');
+  assert.strictEqual(typeof FRONTEND_TOOL_CAPABILITIES.listCanonicalTemplates, 'function');
+  assert.strictEqual(typeof FRONTEND_TOOL_CAPABILITIES.generateColorPalette, 'function');
+  assert.strictEqual(typeof FRONTEND_TOOL_CAPABILITIES.cssToTailwind, 'function');
   const requiredHints = ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint'];
   for (const tool of FRONTEND_TOOL_DEFINITIONS) {
     assert.ok(tool.annotations, `Tool ${tool.name} must define annotations`);

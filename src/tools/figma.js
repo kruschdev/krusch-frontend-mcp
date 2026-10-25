@@ -1,5 +1,5 @@
 import { addRagItem } from '../rag-engine.js';
-import { getEmbedding } from './embed.js';
+import { getEmbedding, isZeroVector } from './embed.js';
 
 /**
  * Parse and ingest Figma design tokens into the RAG vector store.
@@ -32,7 +32,7 @@ export async function ingestFigmaTokens(tokensJsonStr) {
     for (const token of flatTokens) {
         const content = `Design Token: ${token.name}. Type: ${token.type}. Value: ${token.value}`;
         const vec = await getEmbedding(content);
-        await addRagItem('figma_token', content, token, vec);
+        await addRagItem('figma_token', content, token, isZeroVector(vec) ? null : vec);
         count++;
     }
     return { status: "success", ingested: count };

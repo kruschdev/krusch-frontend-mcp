@@ -8,7 +8,7 @@ const LAYOUT_TIMEOUT_MS = 30_000;
 
 const ollamaConfig = {
     provider: 'ollama',
-    model: 'qwen2.5-coder:1.5b',
+    model: 'qwen2.5-coder:7b',
     temperature: 0.3,
     maxTokens: 1500,
     timeout: LAYOUT_TIMEOUT_MS,

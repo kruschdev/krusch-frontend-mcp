@@ -16,6 +16,21 @@ import { fileURLToPath } from "url";
 
 export const VERSION = "1.1.0";
 
+export const FRONTEND_TOOL_CAPABILITIES = {
+    analyzeLayoutStructure,
+    cssToTailwind,
+    generateColorPalette,
+    generateComponentStyles,
+    generateCssVariables,
+    generateResponsiveBreakpoints,
+    getCanonicalTemplate,
+    getProvenance,
+    ingestFigmaTokens,
+    listCanonicalTemplates,
+    queryDesignRules,
+    traverseGraph,
+};
+
 const server = new Server(
     {
         name: "krusch-frontend-mcp",
@@ -23,7 +38,7 @@ const server = new Server(
     },
     {
         capabilities: {
-            tools: {},
+            tools: FRONTEND_TOOL_CAPABILITIES,
         },
     }
 );
@@ -232,7 +247,7 @@ export const FRONTEND_TOOL_DEFINITIONS = [
             properties: {
                 templateKey: {
                     type: "string",
-                    enum: ["article-shell", "footer-deadbolt", "deadbolt-svg", "cyber-grid", "nav-back"],
+                    enum: ["article-shell", "site-header", "footer-deadbolt", "deadbolt-svg", "cyber-grid", "nav-back"],
                     description: "The canonical template or component key to retrieve."
                 }
             },

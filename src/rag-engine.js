@@ -1,25 +1,30 @@
 import { initDb, query, run, getDb as getRawDb, exec } from './lib/db.js';
 import * as sqliteVec from 'sqlite-vec';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { config } from './config.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { config, MEMORY_DB_PATH } from './config.js';
 
 let dbPromise = null;
+
+const DEFAULT_DB_INIT_TIMEOUT_MS = 10_000;
 
 /**
  * Initialize the SQLite database with sqlite-vec extension.
  * Uses a cached Promise to guarantee exactly one initialization
- * even under concurrent calls.
+ * even under concurrent calls, with timeout and AbortSignal support (ARCH-01).
+ * @param {{ timeoutMs?: number, signal?: AbortSignal }} [options]
  * @returns {Promise<true>}
  */
-export async function getDb() {
+export async function getDb(options = {}) {
+    if (options?.signal?.aborted) {
+        throw new Error('Database initialization aborted via AbortSignal');
+    }
     if (!dbPromise) {
-        dbPromise = (async () => {
-            // Allow env override for test isolation
-            const dbPath = process.env.MEMORY_DB_PATH || join(__dirname, '..', 'memory.db');
+        const timeoutMs = Number.isFinite(options?.timeoutMs) && options.timeoutMs > 0
+            ? options.timeoutMs
+            : DEFAULT_DB_INIT_TIMEOUT_MS;
+        let timer = null;
+        const initTask = (async () => {
+            // Allow config override for test isolation
+            const dbPath = config.memoryDbPath || MEMORY_DB_PATH;
             await initDb(dbPath);
             const rawDb = getRawDb();
             
@@ -55,6 +60,26 @@ export async function getDb() {
 
             return true;
         })();
+
+        const timeoutPromise = new Promise((_, reject) => {
+            timer = setTimeout(() => {
+                dbPromise = null;
+                reject(new Error(`Database initialization timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+            if (typeof timer.unref === 'function') timer.unref();
+        });
+
+        dbPromise = Promise.race([initTask, timeoutPromise]).then(
+            (res) => {
+                if (timer) clearTimeout(timer);
+                return res;
+            },
+            (err) => {
+                if (timer) clearTimeout(timer);
+                dbPromise = null;
+                throw err;
+            }
+        );
     }
     return dbPromise;
 }

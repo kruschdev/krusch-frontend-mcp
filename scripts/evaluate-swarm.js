@@ -6,15 +6,24 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function runSwarmEvaluation() {
+export function parseToolJson(rawText, label = 'rulesResponse') {
+    try {
+        return JSON.parse(rawText);
+    } catch (e) {
+        console.error(`Failed to parse ${label}:`, e);
+        throw e;
+    }
+}
+
+export async function runSwarmEvaluation(deps = {}) {
     console.log("🚀 Starting Swarm Evaluation Pipeline...\n");
 
-    const transport = new StdioClientTransport({
+    const transport = deps.transport || new StdioClientTransport({
         command: "node",
         args: [join(__dirname, "../src/index.js")]
     });
 
-    const client = new Client(
+    const client = deps.client || new Client(
         {
             name: "swarm-eval-client",
             version: "1.0.0"
@@ -41,7 +50,13 @@ async function runSwarmEvaluation() {
             console.error(`   ❌ Tool Error: ${rulesResponse.content[0].text}`);
             throw new Error("Tool failed");
         }
-        const rulesData = JSON.parse(rulesResponse.content[0].text);
+        let rulesData;
+        try {
+            rulesData = JSON.parse(rulesResponse.content[0].text);
+        } catch (e) {
+            console.error("Failed to parse rulesResponse:", e);
+            throw e;
+        }
         console.log("   ✅ Retrieved Rules:");
         rulesData.forEach(r => console.log(`      - ${r.rule} (score: ${r.confidence.toFixed(2)})`));
 
@@ -50,7 +65,11 @@ async function runSwarmEvaluation() {
             name: "generate_color_palette",
             arguments: { baseHex: "#3b82f6" }
         });
-        const colorData = JSON.parse(colorResponse.content[0].text);
+        if (colorResponse.isError) {
+            console.error(`   ❌ Tool Error: ${colorResponse.content[0].text}`);
+            throw new Error("Tool failed");
+        }
+        const colorData = parseToolJson(colorResponse.content[0].text, "colorResponse");
         console.log(`   ✅ Generated Palette (Analogous 1): ${colorData.analogous[0]}`);
         console.log(`   ✅ Primary Contrast: ${colorData.accessibility.contrast_ratio} (${colorData.accessibility.wcag_level})`);
 
@@ -70,7 +89,11 @@ async function runSwarmEvaluation() {
             name: "analyze_layout_structure",
             arguments: { htmlString: htmlSnippet }
         });
-        const layoutData = JSON.parse(layoutResponse.content[0].text);
+        if (layoutResponse.isError) {
+            console.error(`   ❌ Tool Error: ${layoutResponse.content[0].text}`);
+            throw new Error("Tool failed");
+        }
+        const layoutData = parseToolJson(layoutResponse.content[0].text, "layoutResponse");
         if (layoutData.error) throw new Error(layoutData.error);
         console.log("   ✅ Layout Recommendation:");
         console.log(`\n${layoutData.suggestion.split('\\n').map(l => '        ' + l).join('\\n')}`);
@@ -82,7 +105,11 @@ async function runSwarmEvaluation() {
             name: "generate_component_styles",
             arguments: { description: "glassmorphism dashboard widget card with hover lift" }
         });
-        const styleData = JSON.parse(styleResponse.content[0].text);
+        if (styleResponse.isError) {
+            console.error(`   ❌ Tool Error: ${styleResponse.content[0].text}`);
+            throw new Error("Tool failed");
+        }
+        const styleData = parseToolJson(styleResponse.content[0].text, "styleResponse");
         if (styleData.error) throw new Error(styleData.error);
         console.log("   ✅ Generated Component Styles:");
         console.log(`\n${styleData.css.split('\\n').map(l => '        ' + l).join('\\n')}`);
@@ -91,10 +118,17 @@ async function runSwarmEvaluation() {
 
     } catch (err) {
         console.error("\n❌ Swarm Evaluation Failed:", err);
+        if (deps.rethrowOnError !== false && (deps.client || deps.rethrowOnError === true)) {
+            throw err;
+        }
     } finally {
         // Close transport
         await transport.close();
     }
 }
 
-runSwarmEvaluation().catch(console.error);
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMain) {
+    runSwarmEvaluation().catch(console.error);
+}
+

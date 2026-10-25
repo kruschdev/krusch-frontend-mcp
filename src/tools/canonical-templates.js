@@ -77,14 +77,30 @@ export const CANONICAL_TEMPLATES = {
 <body>
   <div class="cyber-grid"></div>
 
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Primary Navigation">
+      <a href="/" class="site-brand">
+        <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
+          <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
+        </svg>
+        <span class="site-brand-text">KRUSCH<span>.DEV</span></span>
+      </a>
+      <div class="site-nav-links">
+        <a href="/articles/" class="site-nav-link">Publications</a>
+        <a href="/sovereign/" class="site-nav-link">On-Prem Specs</a>
+        <a href="/resume.html" class="site-nav-link">Resume</a>
+        <a href="/contact.html" class="site-nav-cta">Engage →</a>
+      </div>
+    </nav>
+  </header>
+
   <main class="article-container" style="margin-top: var(--space-6);">
-    <a href="/index.html" class="nav-back">← Back to Krusch Dev</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: var(--space-5);">
+      <a href="/" class="nav-back" style="margin-bottom: 0;">← Back to Architect Hub</a>
+      <a href="/articles/" class="nav-back" style="margin-bottom: 0;">All Systems Papers →</a>
+    </div>
 
     <header class="article-header">
-      <div class="project-badges" style="margin-bottom: var(--space-3);">
-        <span class="project-badge gold">{{BADGE_1}}</span>
-        <span class="project-badge cyan">{{BADGE_2}}</span>
-      </div>
       <h1 class="article-title">{{TITLE}}</h1>
       <p class="article-subhead">{{SUBHEAD}}</p>
       <div class="article-meta">
@@ -118,6 +134,25 @@ export const CANONICAL_TEMPLATES = {
   </footer>
 </body>
 </html>`
+  },
+  'site-header': {
+    description: 'Standardized krusch.dev sticky top navigation header with 13-point dead-bolt SVG and 4 top-level links.',
+    html: `<header class="site-header">
+  <nav class="site-nav" aria-label="Primary Navigation">
+    <a href="/" class="site-brand">
+      <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
+        <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
+      </svg>
+      <span class="site-brand-text">KRUSCH<span>.DEV</span></span>
+    </a>
+    <div class="site-nav-links">
+      <a href="/articles/" class="site-nav-link">Publications</a>
+      <a href="/sovereign/" class="site-nav-link">On-Prem Specs</a>
+      <a href="/resume.html" class="site-nav-link">Resume</a>
+      <a href="/contact.html" class="site-nav-cta">Engage →</a>
+    </div>
+  </nav>
+</header>`
   },
   'footer-deadbolt': {
     description: 'Canonical krusch.dev site footer with 13-point SVG dead-bolt logo, socials, and copyright.',

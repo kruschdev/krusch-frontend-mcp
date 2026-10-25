@@ -12,7 +12,7 @@ const COMPONENT_TIMEOUT_MS = 30_000;
 
 const ollamaConfig = {
     provider: 'ollama',
-    model: 'qwen2.5-coder:1.5b',
+    model: 'qwen2.5-coder:7b',
     temperature: 0.4,
     maxTokens: 2000,
     timeout: COMPONENT_TIMEOUT_MS,
