@@ -29,11 +29,11 @@ AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that
 - **Node.js 22+**
 - **[Ollama](https://ollama.ai/)** running locally (or on a remote host)
 - Required Ollama models:
-  - `bge-large` — for embedding design rules and tokens
+  - `snowflake-arctic-embed2` — `8,192`-ctx `1024`-dim embedder for design rules and tokens (or configurable `EMBED_MODEL`)
   - `qwen2.5-coder:1.5b` — for layout analysis and component style generation
 
 ```bash
-ollama pull bge-large
+ollama pull snowflake-arctic-embed2
 ollama pull qwen2.5-coder:1.5b
 ```
 
@@ -63,7 +63,7 @@ All configuration is via environment variables. Create a `.env` file or export t
 |----------|---------|-------------|
 | `OLLAMA_URL` | `http://localhost:11434` | Primary Ollama instance URL |
 | `OLLAMA_NODES` | *(derived from OLLAMA_URL)* | Comma-separated `host:port` list for fleet routing |
-| `EMBED_MODEL` | `bge-large` | Ollama model for embeddings |
+| `EMBED_MODEL` | `snowflake-arctic-embed2` | Ollama model for embeddings |
 | `EMBED_DIMENSION` | `1024` | Embedding vector dimension |
 | `DEBUG` | `false` | Enable debug logging |
 
