@@ -9,14 +9,16 @@ test('getCanonicalTemplate returns article-shell with cyber-grid and deadbolt fo
   assert.ok(tpl.html.includes('class="nav-back"'));
   assert.ok(tpl.html.includes('class="main-footer"'));
   assert.ok(tpl.html.includes('class="dead-bolt"'));
-  assert.ok(tpl.html.includes('68,2 26,26'));
+  assert.ok(tpl.html.includes('121,2 79,25'));
+  assert.strictEqual(tpl.html.includes('68,2 26,26'), false);
 });
 
 test('getCanonicalTemplate returns footer-deadbolt with 13-point polygon', () => {
   const tpl = getCanonicalTemplate('footer-deadbolt');
   assert.strictEqual(tpl.key, 'footer-deadbolt');
   assert.ok(tpl.html.includes('KRUSCH<span style="color: var(--accent-cyan);">.DEV</span>'));
-  assert.ok(tpl.html.includes('polygon points='));
+  assert.ok(tpl.html.includes('polygon points="121,2 79,25'));
+  assert.strictEqual(tpl.html.includes('68,2 26,26'), false);
 });
 
 test('getCanonicalTemplate throws on unknown template', () => {

@@ -3,6 +3,26 @@
  * Deterministic canonical page shells, components, and SVG assets for krusch.dev & homelab.
  */
 
+export const STEALIE_BOLT_POINTS =
+  '121,2 79,25 93,28 48,50 78,53 19,89 58,85 5,128 44,124 5,158 34,155 4,212 47,191 35,186 70,171 52,168 105,139 66,140 123,103 74,105 128,69 86,69 126,35 102,36';
+
+const ALT_FAVICON_DATA_URI =
+  'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-44 -3 220 220%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%2278%25%22 y1=%224%25%22 x2=%2218%25%22 y2=%2296%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%236ff1fe%22/%3E%3Cstop offset=%2248%25%22 stop-color=%22%237be8ff%22/%3E%3Cstop offset=%2272%25%22 stop-color=%22%238b6eff%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%23d946ef%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points=%22' +
+  STEALIE_BOLT_POINTS +
+  '%22 fill=%22url(%23g)%22 stroke=%22%23ffffff%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E';
+
+function renderDeadBoltSvg(suffix, indent = '') {
+  const gId = `boltGrad-${suffix}`;
+  const rId = `boltRim-${suffix}`;
+  return `<svg class="dead-bolt" viewBox="0 -2 132 218" width="16" height="26" aria-label="13-point lightning bolt">
+${indent}  <defs>
+${indent}    <linearGradient id="${gId}" x1="78%" y1="4%" x2="18%" y2="96%"><stop offset="0%" stop-color="#6ff1fe"/><stop offset="24%" stop-color="#37e1ff"/><stop offset="48%" stop-color="#7be8ff"/><stop offset="72%" stop-color="#8b6eff"/><stop offset="90%" stop-color="#9d4edd"/><stop offset="100%" stop-color="#d946ef"/></linearGradient>
+${indent}    <linearGradient id="${rId}" x1="80%" y1="0%" x2="15%" y2="100%"><stop offset="0%" stop-color="#bef8ff"/><stop offset="45%" stop-color="#ffffff"/><stop offset="80%" stop-color="#f5d0fe"/><stop offset="100%" stop-color="#fae8ff"/></linearGradient>
+${indent}  </defs>
+${indent}  <polygon points="${STEALIE_BOLT_POINTS}" fill="url(#${gId}) #37e1ff" stroke="url(#${rId})" stroke-width="2.6" stroke-linejoin="round" />
+${indent}</svg>`;
+}
+
 export const CANONICAL_TEMPLATES = {
   'article-shell': {
     description: 'Canonical article page layout for krusch.dev with cyber-grid, nav-back, article container, and dead-bolt SVG footer.',
@@ -12,12 +32,13 @@ export const CANONICAL_TEMPLATES = {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}} — Krusch Dev</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261025">
+  <link rel="alternate icon" href="${ALT_FAVICON_DATA_URI}">
   <link rel="canonical" href="https://krusch.dev/articles/{{SLUG}}.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../style.css?v=2.5">
+  <link rel="stylesheet" href="../style.css?v=20261025-bolt">
   <style>
     .article-container {
       max-width: 980px;
@@ -80,9 +101,7 @@ export const CANONICAL_TEMPLATES = {
   <header class="site-header">
     <nav class="site-nav" aria-label="Primary Navigation">
       <a href="/" class="site-brand">
-        <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
-          <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
-        </svg>
+        ${renderDeadBoltSvg('1', '        ')}
         <span class="site-brand-text">KRUSCH<span>.DEV</span></span>
       </a>
       <div class="site-nav-links">
@@ -121,9 +140,7 @@ export const CANONICAL_TEMPLATES = {
     <div class="footer-brand">
       <a href="/" class="brand-logo" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2);">
         <span class="logo-icon">
-          <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
-            <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
-          </svg>
+          ${renderDeadBoltSvg('2', '          ')}
         </span>
         <span class="logo-text" style="font-family: var(--font-display); font-weight: 700; letter-spacing: 0.1em; color: var(--text-primary);">KRUSCH<span style="color: var(--accent-cyan);">.DEV</span></span>
       </a>
@@ -140,9 +157,7 @@ export const CANONICAL_TEMPLATES = {
     html: `<header class="site-header">
   <nav class="site-nav" aria-label="Primary Navigation">
     <a href="/" class="site-brand">
-      <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
-        <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
-      </svg>
+      ${renderDeadBoltSvg('hdr', '      ')}
       <span class="site-brand-text">KRUSCH<span>.DEV</span></span>
     </a>
     <div class="site-nav-links">
@@ -160,9 +175,7 @@ export const CANONICAL_TEMPLATES = {
   <div class="footer-brand">
     <a href="/" class="brand-logo" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2);">
       <span class="logo-icon">
-        <svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
-          <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
-        </svg>
+        ${renderDeadBoltSvg('ftr', '        ')}
       </span>
       <span class="logo-text" style="font-family: var(--font-display); font-weight: 700; letter-spacing: 0.1em; color: var(--text-primary);">KRUSCH<span style="color: var(--accent-cyan);">.DEV</span></span>
     </a>
@@ -173,10 +186,8 @@ export const CANONICAL_TEMPLATES = {
 </footer>`
   },
   'deadbolt-svg': {
-    description: 'The authoritative 13-point lightning bolt SVG vector polygon.',
-    html: `<svg class="dead-bolt" viewBox="0 0 96 185" width="16" height="26" aria-label="13-point lightning bolt">
-  <polygon points="68,2 26,26 62,32 22,52 58,58 18,78 54,84 14,104 50,110 10,130 46,136 6,180 40,154 74,142 44,128 78,116 48,102 82,90 52,76 86,64 56,50 90,38 60,24 88,14" />
-</svg>`
+    description: 'The authoritative 13-point Grateful Dead Stealie lightning bolt SVG vector polygon.',
+    html: renderDeadBoltSvg('standalone', '')
   },
   'cyber-grid': {
     description: 'Background cyber grid container element.',
