@@ -196,6 +196,126 @@ export const CANONICAL_TEMPLATES = {
   'nav-back': {
     description: 'Back navigation link arrow with translateX hover animation.',
     html: `<a href="/index.html" class="nav-back">← Back to Krusch Dev</a>`
+  },
+  'lego-node-api': {
+    description: 'Zero-boilerplate Node 22 HTTP + SQLite WAL server using @krusch/toolkit/http and @krusch/toolkit/db.',
+    html: `import { createApiServer, attachGracefulShutdown, okEnvelope } from '@krusch/toolkit/http';
+import { initDb, query, closeDb } from '@krusch/toolkit/db';
+
+initDb(process.env.DB_PATH || './data/app.db');
+
+const server = createApiServer({
+  serviceName: 'my-service',
+  version: '1.0.0',
+  routes: {
+    'GET /api/items': () => okEnvelope('items.list', 'Fetched items', { items: query('SELECT 1 AS ok') })
+  }
+});
+
+attachGracefulShutdown(server, [() => closeDb()]);
+server.listen(Number(process.env.PORT || 3000));`
+  },
+  'lego-mcp-server': {
+    description: 'Compliant Stdio MCP server brick using @krusch/toolkit/mcp with mandatory 4-boolean annotations (INV-STACK-03).',
+    html: `import { defineMcpTool, createMcpServer, okMcpResult } from '@krusch/toolkit/mcp';
+
+const TOOLS = [
+  defineMcpTool({
+    name: 'ping_service',
+    title: 'Ping Service',
+    description: 'Deterministic health check tool.',
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+    inputSchema: { type: 'object', properties: {} }
+  })
+];
+
+await createMcpServer('my-mcp', '1.0.0', TOOLS, async (name) => okMcpResult(name, 'Pong', { ready: true }));`
+  },
+  'lego-sse-route': {
+    description: 'AbortController-safe Server-Sent Events (SSE) chat route using @krusch/toolkit/streaming.',
+    html: `import { streamChat } from '@krusch/toolkit/streaming';
+
+export async function handleChatStream(req, res, body, llmConfig) {
+  return streamChat(res, req, {
+    tool: 'chat.stream',
+    systemPrompt: body.systemPrompt || 'You are a concise assistant.',
+    userMessage: body.prompt || '',
+    config: llmConfig
+  });
+}`
+  },
+  'lego-react-shell': {
+    description: 'Drop-in React UI shell + AbortController-safe API & SSE hooks from @krusch/toolkit/react.',
+    html: `import React from 'react';
+import { AppShell, MetricCard, StreamingChatPanel, useApiQuery, useSSEStream } from '@krusch/toolkit/react';
+
+export function DashboardApp() {
+  const { data } = useApiQuery('/health');
+  const stream = useSSEStream('/api/chat/stream');
+  return (
+    <AppShell title="Krusch App" status={data ? 'healthy' : 'degraded'}>
+      <MetricCard title="Service" value={data?.service || 'loading'} status="healthy" />
+      <StreamingChatPanel
+        streamingText={stream.text}
+        status={stream.status}
+        onSend={(prompt) => stream.start({ prompt })}
+        onStop={() => stream.stop()}
+      />
+    </AppShell>
+  );
+}`
+  },
+  'lego-fastapi-app': {
+    description: 'Zero-boilerplate Python 3.12 FastAPI app factory with /health, CORS, X-Request-ID, JSON error envelopes, and SSE via krusch_toolkit.fastapi_app.',
+    html: `from krusch_toolkit.fastapi_app import create_fastapi_app, ok_envelope
+
+app = create_fastapi_app(title="Krusch Python Service", version="1.0.0")
+
+@app.get("/api/items")
+async def list_items():
+    return ok_envelope("items.list", "Fetched items", {"items": []})`
+  },
+  'lego-cloudflare-worker': {
+    description: 'Zero-node:* Web-Standards Cloudflare Worker router with KV store and SSE via @krusch/toolkit/edge (INV-LEGO-08).',
+    html: `import { createEdgeRouter, createEdgeKvJsonStore, edgeSseResponse } from '@krusch/toolkit/edge';
+
+export default createEdgeRouter({
+  serviceName: 'edge-portal',
+  version: '1.0.0',
+  routes: {
+    'GET /api/items': async ({ env, ok }) => {
+      const store = createEdgeKvJsonStore(env?.STATE_KV, { prefix: 'items:' });
+      const listed = await store.list({ limit: 50 });
+      return ok('Listed items', { keys: listed.keys });
+    },
+    'GET /api/stream': ({ request, corsHeaders }) =>
+      edgeSseResponse(async (sse) => {
+        sse.sendToken('Edge stream ready');
+        sse.done('Complete');
+      }, { request, corsHeaders })
+  }
+});`
+  },
+  'lego-webhook-route': {
+    description: 'Constant-time HMAC webhook verification route (Slack/GitHub/Stripe) using @krusch/toolkit/webhooks (INV-LEGO-09).',
+    html: `import { verifyGithubSignature } from '@krusch/toolkit/webhooks';
+import { okEnvelope } from '@krusch/toolkit/http';
+
+export function handleGithubWebhook({ req, rawBody, sendJson }) {
+  const verdict = verifyGithubSignature({
+    rawBody,
+    signatureHeader: req.headers['x-hub-signature-256'],
+    webhookSecret: process.env.GITHUB_WEBHOOK_SECRET
+  });
+  if (!verdict.ok) {
+    sendJson(401, verdict);
+    return;
+  }
+  sendJson(200, okEnvelope('webhooks.github', 'Accepted GitHub event', { verified: true }));
+}`
   }
 };
 
@@ -205,13 +325,14 @@ export const CANONICAL_TEMPLATES = {
  * @returns {{ key: string, description: string, html: string }}
  */
 export function getCanonicalTemplate(templateKey) {
-  const tpl = CANONICAL_TEMPLATES[templateKey];
+  const key = String(templateKey ?? '');
+  const tpl = Object.hasOwn(CANONICAL_TEMPLATES, key) ? CANONICAL_TEMPLATES[key] : null;
   if (!tpl) {
     const available = Object.keys(CANONICAL_TEMPLATES).join(', ');
     throw new Error(`Unknown template '${templateKey}'. Available templates: ${available}`);
   }
   return {
-    key: templateKey,
+    key,
     description: tpl.description,
     html: tpl.html
   };

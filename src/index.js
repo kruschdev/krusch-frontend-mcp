@@ -12,6 +12,8 @@ import { generateResponsiveBreakpoints } from "./tools/breakpoints.js";
 import { getCanonicalTemplate, listCanonicalTemplates } from "./tools/canonical-templates.js";
 import { getProvenance, traverseGraph } from "./rag-engine.js";
 
+import { realpathSync } from "fs";
+import { resolve as resolvePath } from "path";
 import { fileURLToPath } from "url";
 
 export const VERSION = "1.1.0";
@@ -235,7 +237,7 @@ export const FRONTEND_TOOL_DEFINITIONS = [
     },
     {
         name: "get_canonical_template",
-        description: "Returns the authoritative bit-for-bit HTML/SVG component template for krusch.dev and homelab web projects. Guaranteed consistency for article shells, cyber-grid, nav-back, and the 13-point SVG dead-bolt footer.",
+        description: "Returns the authoritative bit-for-bit HTML/SVG component template or @krusch/toolkit & krusch_toolkit Lego starter brick for krusch.dev and homelab projects.",
         annotations: {
             readOnlyHint: true,
             destructiveHint: false,
@@ -247,8 +249,8 @@ export const FRONTEND_TOOL_DEFINITIONS = [
             properties: {
                 templateKey: {
                     type: "string",
-                    enum: ["article-shell", "site-header", "footer-deadbolt", "deadbolt-svg", "cyber-grid", "nav-back"],
-                    description: "The canonical template or component key to retrieve."
+                    enum: listCanonicalTemplates().map((t) => t.key),
+                    description: "The canonical template or Lego starter brick key to retrieve."
                 }
             },
             required: ["templateKey"]
@@ -256,7 +258,7 @@ export const FRONTEND_TOOL_DEFINITIONS = [
     },
     {
         name: "list_canonical_templates",
-        description: "Lists all available canonical HTML and SVG design templates for homelab web projects.",
+        description: "Lists all available canonical HTML/SVG design templates and @krusch/toolkit & krusch_toolkit Lego starter bricks for homelab projects.",
         annotations: {
             readOnlyHint: true,
             destructiveHint: false,
@@ -276,9 +278,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { name, arguments: args } = request.params;
-    
+export async function dispatchFrontendTool(request) {
+    const params = request?.params && typeof request.params === "object" ? request.params : {};
+    const name = params.name;
+    const rawArgs = params.arguments;
+    const args = rawArgs && typeof rawArgs === "object" && !Array.isArray(rawArgs) ? rawArgs : {};
+
     try {
         switch (name) {
             case "generate_color_palette": {
@@ -344,7 +349,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             isError: true,
         };
     }
-});
+}
+
+server.setRequestHandler(CallToolRequestSchema, dispatchFrontendTool);
 
 async function main() {
     try {
@@ -359,7 +366,18 @@ async function main() {
     }
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+function resolveEntryRealPath(targetPath) {
+    try {
+        return realpathSync(targetPath);
+    } catch {
+        return resolvePath(targetPath);
+    }
+}
+
+if (
+    process.argv[1] &&
+    resolveEntryRealPath(fileURLToPath(import.meta.url)) === resolveEntryRealPath(process.argv[1])
+) {
     main();
 }
 

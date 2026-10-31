@@ -100,8 +100,8 @@ Add to your MCP client configuration:
 | `css_to_tailwind` | AST-based CSS → Tailwind class mapping (~230 entries + shorthand expansion) |
 | `generate_css_variables_from_figma` | Parse Figma JSON tokens into a CSS `:root` block with custom properties |
 | `generate_responsive_breakpoints` | CSS media query generation with customizable breakpoint widths |
-| `get_canonical_template` | Retrieve authoritative HTML/SVG component templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`) |
-| `list_canonical_templates` | List all available canonical HTML and SVG design templates |
+| `get_canonical_template` | Retrieve 12 authoritative HTML/SVG & `@krusch/toolkit` Lego templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`, `lego-node-api`, `lego-mcp-server`, `lego-sse-route`, `lego-react-shell`, `lego-fastapi-app`, `lego-cloudflare-worker`, `lego-webhook-route`) |
+| `list_canonical_templates` | List all 12 available canonical HTML/SVG brand primitives and Lego code starter templates |
 
 ### RAG & Provenance Lineage (SQLite + sqlite-vec)
 

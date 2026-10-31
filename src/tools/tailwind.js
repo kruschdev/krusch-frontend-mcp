@@ -364,22 +364,31 @@ function expandShorthand(property, value) {
     return [{ property, value }];
 }
 
+const MAX_CSS_INPUT_CHARS = 100_000;
+const tailwindLowerMap = Object.fromEntries(
+    Object.entries(tailwindMap).map(([k, v]) => [k.toLowerCase(), v])
+);
+
 /**
  * Translate CSS declarations to Tailwind utility classes.
  * @param {string} cssString - Raw CSS declarations (e.g. 'display: flex; padding: 1rem;')
  * @returns {{ tailwind_classes: string, unmapped_css: string[] }}
  */
 export function cssToTailwind(cssString) {
-    if (!cssString || cssString.trim().length === 0) {
+    if (typeof cssString !== 'string' || cssString.trim().length === 0) {
         return { tailwind_classes: '', unmapped_css: [] };
     }
 
+    const boundedCss = cssString.length > MAX_CSS_INPUT_CHARS
+        ? cssString.slice(0, MAX_CSS_INPUT_CHARS)
+        : cssString;
+
     let ast;
     try {
-        ast = css.parse(`* { ${cssString} }`);
-    } catch (e) {
+        ast = css.parse(`* { ${boundedCss} }`);
+    } catch {
         // If it fails to parse, fallback to empty array
-        return { tailwind_classes: '', unmapped_css: [cssString] };
+        return { tailwind_classes: '', unmapped_css: [boundedCss] };
     }
 
     const declarations = ast.stylesheet.rules[0]?.declarations || [];
@@ -391,12 +400,25 @@ export function cssToTailwind(cssString) {
     for (const dec of declarations) {
         if (dec.type !== 'declaration') continue;
 
-        const expanded = expandShorthand(dec.property, dec.value);
+        const normProp = String(dec.property || '').trim().toLowerCase();
+        const normVal = String(dec.value || '')
+            .trim()
+            .replace(/\s+/g, ' ')
+            .replace(/\s*!important$/i, '')
+            .trim();
+        if (!normProp || !normVal) continue;
+
+        const expanded = expandShorthand(normProp, normVal);
 
         for (const { property, value } of expanded) {
             const decString = `${property}: ${value};`;
-            const matchedClass = tailwindMap[decString];
-            
+            const lowerDecString = decString.toLowerCase();
+            const matchedClass = Object.hasOwn(tailwindMap, decString)
+                ? tailwindMap[decString]
+                : Object.hasOwn(tailwindLowerMap, lowerDecString)
+                    ? tailwindLowerMap[lowerDecString]
+                    : undefined;
+
             if (matchedClass) {
                 if (!uniqueClasses.has(matchedClass)) {
                     classes.push(matchedClass);
@@ -413,3 +435,4 @@ export function cssToTailwind(cssString) {
         unmapped_css: unmapped
     };
 }
+

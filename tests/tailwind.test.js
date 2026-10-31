@@ -80,3 +80,13 @@ test('cssToTailwind expands padding shorthand with 4 values', () => {
     assert.strictEqual(result.tailwind_classes, 'pt-2 pr-4 pb-6 pl-8');
     assert.strictEqual(result.unmapped_css.length, 0);
 });
+
+test('cssToTailwind normalizes uppercase properties/values, multi-space shorthands, !important, and non-string input (REF14-02)', () => {
+    assert.deepStrictEqual(cssToTailwind(null), { tailwind_classes: '', unmapped_css: [] });
+    assert.deepStrictEqual(cssToTailwind(42), { tailwind_classes: '', unmapped_css: [] });
+
+    const upper = cssToTailwind('DISPLAY: FLEX; PADDING: 1REM   2REM !IMPORTANT; BACKGROUND-COLOR: CURRENTCOLOR;');
+    assert.strictEqual(upper.tailwind_classes, 'flex pt-4 pr-8 pb-4 pl-8 bg-current');
+    assert.strictEqual(upper.unmapped_css.length, 0);
+});
+
