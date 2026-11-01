@@ -46,3 +46,33 @@ test('initDb(":memory:") initializes SQLite connection and resetDbForTest clears
         resetDbForTest();
     }
 });
+
+test('initDb + resetDbForTest + second ":memory:" DB isolates state cleanly without table leakage', () => {
+    resetDbForTest();
+    try {
+        const db1 = initDb(':memory:');
+        run('CREATE TABLE isolated_tokens (id INTEGER PRIMARY KEY, token TEXT)');
+        run('INSERT INTO isolated_tokens (token) VALUES (?)', ['color-primary']);
+        assert.equal(query('SELECT * FROM isolated_tokens').length, 1);
+
+        resetDbForTest();
+        assert.throws(() => getDb(), /Database not initialized/);
+
+        const db2 = initDb(':memory:');
+        assert.notEqual(db2, db1);
+        const leakedTables = query(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'isolated_tokens'"
+        );
+        assert.equal(leakedTables.length, 0);
+        assert.throws(() => query('SELECT * FROM isolated_tokens'), /no such table: isolated_tokens/);
+
+        // Directly closing the handle must not wedge getDb() or subsequent initDb() calls
+        db2.close();
+        assert.throws(() => getDb(), /Database not initialized/);
+        const db3 = initDb(':memory:');
+        assert.equal(db3.open, true);
+        assert.notEqual(db3, db2);
+    } finally {
+        resetDbForTest();
+    }
+});

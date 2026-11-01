@@ -5,8 +5,68 @@
  */
 
 import Database from 'better-sqlite3';
-import { mkdirSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { dirname, isAbsolute } from 'path';
+
+const toolkitDbUrl = new URL('../../../../lib/db.js', import.meta.url);
+
+async function loadDbToolkit() {
+    try {
+        if (existsSync(toolkitDbUrl)) {
+            return await import(toolkitDbUrl.href);
+        }
+    } catch {
+        // Fall through when sibling lib/ exists without better-sqlite3 installed in lib/node_modules
+    }
+    try {
+        return await import('@krusch/toolkit/db');
+    } catch {
+        let fallbackDb = null;
+        return {
+            initDb(dbPath, options = {}) {
+                if (fallbackDb && fallbackDb.open !== false) return fallbackDb;
+                if (dbPath !== ':memory:') {
+                    mkdirSync(dirname(dbPath), { recursive: true });
+                }
+                const SqliteDriver = options._DatabaseClass || Database;
+                const db = new SqliteDriver(dbPath);
+                try {
+                    if (options.busyTimeout !== 0) {
+                        db.pragma(`busy_timeout = ${Number(options.busyTimeout ?? 5000)}`);
+                    }
+                    if (options.wal !== false && dbPath !== ':memory:') {
+                        db.pragma('journal_mode = WAL');
+                        db.pragma('synchronous = NORMAL');
+                        db.pragma('wal_autocheckpoint = 1000');
+                    }
+                    db.pragma('foreign_keys = ON');
+                } catch (err) {
+                    try {
+                        db.close();
+                    } catch {
+                        // ignore close error on failed pragma init
+                    }
+                    fallbackDb = null;
+                    throw err;
+                }
+                fallbackDb = db;
+                return fallbackDb;
+            },
+            closeDb() {
+                if (fallbackDb && typeof fallbackDb.close === 'function') {
+                    try {
+                        fallbackDb.close();
+                    } catch {
+                        // ignore close error in fallback cleanup
+                    }
+                }
+                fallbackDb = null;
+            },
+        };
+    }
+}
+
+const { initDb: initToolkitDb, closeDb: closeToolkitDb } = await loadDbToolkit();
 
 /** @type {Database.Database|null} */
 let _db = null;
@@ -62,17 +122,28 @@ export const initLock = new AsyncMutex();
  */
 export function initDb(dbPath, options = {}) {
     validateDbPath(dbPath);
-    if (_db) return _db;
+    if (_db && _db.open !== false) return _db;
+    if (_db && _db.open === false) {
+        _db = null;
+        if (typeof closeToolkitDb === 'function') {
+            try {
+                closeToolkitDb();
+            } catch {
+                // ignore close error on stale handle reset
+            }
+        }
+    }
 
     if (dbPath !== ':memory:') {
         mkdirSync(dirname(dbPath), { recursive: true });
     }
-    _db = new Database(dbPath);
-
-    if (options.wal !== false && dbPath !== ':memory:') {
-        _db.pragma('journal_mode = WAL');
+    _db = initToolkitDb(dbPath, {
+        wal: options.wal !== false && dbPath !== ':memory:',
+        _DatabaseClass: Database,
+    });
+    if (typeof _db.pragma === 'function') {
+        _db.pragma('foreign_keys = ON');
     }
-    _db.pragma('foreign_keys = ON');
 
     return _db;
 }
@@ -100,6 +171,13 @@ export function resetDbForTest() {
         }
     }
     _db = null;
+    if (typeof closeToolkitDb === 'function') {
+        try {
+            closeToolkitDb();
+        } catch {
+            // ignore close error in test cleanup
+        }
+    }
 }
 
 /**
@@ -108,7 +186,7 @@ export function resetDbForTest() {
  * @throws {Error} If database hasn't been initialized.
  */
 export function getDb() {
-    if (!_db) throw new Error('Database not initialized. Call initDb() first.');
+    if (!_db || _db.open === false) throw new Error('Database not initialized. Call initDb() first.');
     return _db;
 }
 

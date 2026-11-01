@@ -1,6 +1,7 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { existsSync, realpathSync } from "fs";
+import { resolve as resolvePath } from "path";
+import { fileURLToPath } from "url";
+
 import { config } from "./config.js";
 import { generateColorPalette } from "./tools/color.js";
 import { cssToTailwind } from "./tools/tailwind.js";
@@ -12,9 +13,61 @@ import { generateResponsiveBreakpoints } from "./tools/breakpoints.js";
 import { getCanonicalTemplate, listCanonicalTemplates } from "./tools/canonical-templates.js";
 import { getProvenance, traverseGraph } from "./rag-engine.js";
 
-import { realpathSync } from "fs";
-import { resolve as resolvePath } from "path";
-import { fileURLToPath } from "url";
+const toolkitMcpUrl = new URL("../../../lib/mcp-server.js", import.meta.url);
+
+async function loadMcpToolkit() {
+    try {
+        if (existsSync(toolkitMcpUrl)) {
+            return await import(toolkitMcpUrl.href);
+        }
+    } catch {
+        // Fall through when sibling lib/ exists without transitive dependencies installed
+    }
+    try {
+        return await import("@krusch/toolkit/mcp");
+    } catch {
+        return {
+            defineMcpTool(tool) {
+                return {
+                    name: tool.name,
+                    description: tool.description,
+                    inputSchema: tool.inputSchema,
+                    annotations: {
+                        title: String(tool.annotations?.title || tool.title || tool.name),
+                        readOnlyHint: Boolean(tool.annotations?.readOnlyHint),
+                        destructiveHint: Boolean(tool.annotations?.destructiveHint),
+                        idempotentHint: Boolean(tool.annotations?.idempotentHint),
+                        openWorldHint: Boolean(tool.annotations?.openWorldHint),
+                    },
+                };
+            },
+            async createMcpServer(name, version, tools, handler) {
+                const [
+                    { Server: McpHost },
+                    { StdioServerTransport: McpTransport },
+                    { CallToolRequestSchema, ListToolsRequestSchema },
+                ] = await Promise.all([
+                    import("@modelcontextprotocol/sdk/server/index.js"),
+                    import("@modelcontextprotocol/sdk/server/stdio.js"),
+                    import("@modelcontextprotocol/sdk/types.js"),
+                ]);
+                const host = new McpHost(
+                    { name, version },
+                    { capabilities: { tools: {} } }
+                );
+                host.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
+                host.setRequestHandler(CallToolRequestSchema, async (request) =>
+                    handler(request?.params?.name, request?.params?.arguments)
+                );
+                const transport = new McpTransport();
+                await host.connect(transport);
+                return host;
+            },
+        };
+    }
+}
+
+const { createMcpServer, defineMcpTool } = await loadMcpToolkit();
 
 export const VERSION = "1.1.0";
 
@@ -33,19 +86,7 @@ export const FRONTEND_TOOL_CAPABILITIES = {
     traverseGraph,
 };
 
-const server = new Server(
-    {
-        name: "krusch-frontend-mcp",
-        version: VERSION,
-    },
-    {
-        capabilities: {
-            tools: FRONTEND_TOOL_CAPABILITIES,
-        },
-    }
-);
-
-export const FRONTEND_TOOL_DEFINITIONS = [
+const RAW_FRONTEND_TOOL_DEFINITIONS = [
     {
         name: "generate_color_palette",
         description: "Generates a cohesive color palette (complementary, analogous, triadic) and contrast scores from a base hex code.",
@@ -272,11 +313,7 @@ export const FRONTEND_TOOL_DEFINITIONS = [
     }
 ];
 
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return {
-        tools: FRONTEND_TOOL_DEFINITIONS,
-    };
-});
+export const FRONTEND_TOOL_DEFINITIONS = RAW_FRONTEND_TOOL_DEFINITIONS.map((tool) => defineMcpTool(tool));
 
 export async function dispatchFrontendTool(request) {
     const params = request?.params && typeof request.params === "object" ? request.params : {};
@@ -351,12 +388,15 @@ export async function dispatchFrontendTool(request) {
     }
 }
 
-server.setRequestHandler(CallToolRequestSchema, dispatchFrontendTool);
-
 async function main() {
     try {
-        const transport = new StdioServerTransport();
-        await server.connect(transport);
+        await createMcpServer(
+            "krusch-frontend-mcp",
+            VERSION,
+            FRONTEND_TOOL_DEFINITIONS,
+            (name, args) => dispatchFrontendTool({ params: { name, arguments: args } }),
+            { validateArgs: false }
+        );
         if (config.debug) {
             console.error("Krusch Frontend MCP Server running on stdio");
         }
