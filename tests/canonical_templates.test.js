@@ -38,12 +38,37 @@ test('listCanonicalTemplates returns all available keys including Lego starter b
   assert.ok(keys.includes('article-shell'));
   assert.ok(keys.includes('footer-deadbolt'));
   assert.ok(keys.includes('deadbolt-svg'));
-  for (const legoKey of ['lego-node-api', 'lego-mcp-server', 'lego-sse-route', 'lego-react-shell', 'lego-fastapi-app']) {
+  for (const legoKey of [
+    'lego-node-api',
+    'lego-mcp-server',
+    'lego-sse-route',
+    'lego-react-shell',
+    'lego-fastapi-app',
+    'lego-cloudflare-worker',
+    'lego-webhook-route',
+    'lego-vercel-nextjs-shell',
+    'lego-vercel-edge-sse',
+    'lego-vercel-json'
+  ]) {
     assert.ok(keys.includes(legoKey), `Missing ${legoKey}`);
     const tpl = getCanonicalTemplate(legoKey);
     assert.strictEqual(tpl.key, legoKey);
     assert.ok(tpl.html.length > 40);
   }
+
+  const vercelShell = getCanonicalTemplate('lego-vercel-nextjs-shell');
+  assert.ok(vercelShell.html.includes("'use client'"));
+  assert.ok(vercelShell.html.includes('useMounted'));
+  assert.ok(vercelShell.html.includes('useSSEStream'));
+
+  const vercelEdge = getCanonicalTemplate('lego-vercel-edge-sse');
+  assert.ok(vercelEdge.html.includes("export const runtime = 'edge'"));
+  assert.ok(vercelEdge.html.includes("export const dynamic = 'force-dynamic'"));
+  assert.ok(vercelEdge.html.includes('edgeSseResponse'));
+
+  const vercelJson = JSON.parse(getCanonicalTemplate('lego-vercel-json').html);
+  assert.strictEqual(vercelJson.cleanUrls, true);
+  assert.ok(Array.isArray(vercelJson.headers));
 });
 
 test('MCP Server: all 12 tools declare explicit boolean behavioral annotations, capabilities map, and omitted-arguments safety (REF14-02)', async () => {
@@ -73,6 +98,6 @@ test('MCP Server: all 12 tools declare explicit boolean behavioral annotations, 
 
   const listNullArgs = await dispatchFrontendTool({ params: { name: 'list_canonical_templates', arguments: null } });
   assert.notStrictEqual(listNullArgs.isError, true);
-  assert.ok(JSON.parse(listNullArgs.content[0].text).length >= 10);
+  assert.ok(JSON.parse(listNullArgs.content[0].text).length >= 15);
 });
 

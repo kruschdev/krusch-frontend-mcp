@@ -16,6 +16,7 @@ async function truncateRules() {
     console.log('⚠ Clearing existing rules before re-seed...');
     run(`DELETE FROM frontend_rag WHERE type = 'design_rule'`);
     run(`DELETE FROM frontend_rag_vec WHERE id NOT IN (SELECT id FROM frontend_rag)`);
+    run(`DELETE FROM frontend_rag_fts WHERE rowid NOT IN (SELECT id FROM frontend_rag)`);
 }
 
 /**

@@ -21,9 +21,12 @@ export function setSearchProvider(fn) {
  * @param {string|null} [paradigm=null]
  * @returns {Promise<Array<{content: string, confidence: number}>>}
  */
-export async function searchProvider(vec, k = 5, threshold = 0.5, paradigm = null) {
+export async function searchProvider(vec, k = 5, threshold = 0.5, paradigm = null, queryText = undefined) {
     if (typeof activeSearchProvider !== 'function') {
         throw new Error('No searchProvider has been registered');
+    }
+    if (queryText !== undefined) {
+        return activeSearchProvider(vec, k, threshold, paradigm, queryText);
     }
     return activeSearchProvider(vec, k, threshold, paradigm);
 }

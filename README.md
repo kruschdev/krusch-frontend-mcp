@@ -9,32 +9,32 @@
 [![Node.js 22+](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP: 12 Tools](https://img.shields.io/badge/MCP-12%20Tools-blue.svg)](https://modelcontextprotocol.io/)
-[![Storage: sqlite-vec](https://img.shields.io/badge/Storage-sqlite--vec%20RAG-lightgrey.svg)](#architecture)
-[![Tests: 32 Passed](https://img.shields.io/badge/tests-32%20passed-brightgreen.svg)](#development)
+[![Storage: sqlite-vec + FTS5](https://img.shields.io/badge/Storage-sqlite--vec%20%2B%20FTS5%20Hybrid-lightgrey.svg)](#architecture)
+[![Tests: 48 Passed](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](#development)
 [![M8ven Score](https://m8ven.ai/badge/mcp/kruschdev/krusch-frontend-mcp)](https://m8ven.ai/mcp/kruschdev/krusch-frontend-mcp?s=readme)
 
-AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that provides deterministic design utilities, canonical HTML/SVG layout primitives, and RAG-backed design rule retrieval for autonomous frontend development.
+AI-powered styling assistant [MCP server](https://modelcontextprotocol.io/) that provides deterministic design utilities, canonical HTML/SVG/Vercel layout primitives, and Hybrid RAG-backed design rule retrieval for autonomous frontend development.
 
 ## Features
 
-- **12 MCP tools** — deterministic CSS/color algorithms, canonical component templates, provenance graph traversal, and LLM-assisted generation
-- **42 curated design rules** — WCAG accessibility, Refactoring UI heuristics, typography, spacing, and more
-- **Canonical template substrate** — bit-for-bit HTML/SVG component templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`) preventing ad-hoc layout drift
+- **12 MCP tools** — deterministic CSS/color algorithms, canonical component & Vercel templates, provenance graph traversal, and LLM-assisted generation
+- **48 curated design rules** — WCAG accessibility, Refactoring UI heuristics, Vercel Next.js App Router / Edge streaming patterns, typography, and spacing
+- **Canonical template substrate (16 templates)** — bit-for-bit HTML/SVG brand primitives (`article-shell`, `site-header`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`) and `@krusch/toolkit` + Vercel Lego bricks (`lego-vercel-nextjs-shell`, `lego-vercel-edge-sse`, `lego-vercel-json`, etc.) preventing ad-hoc layout drift
 - **Figma token ingestion** — parse design system JSON directly into CSS custom properties or the RAG store
-- **sqlite-vec powered** — high-performance vector search and memory lineage provenance for semantic rule retrieval
+- **Hybrid `sqlite-vec` + SQLite `FTS5` (`BM25`) RRF** — combines `1024d` cosine similarity with lexical `BM25` search via Reciprocal Rank Fusion, with automatic zero-network `FTS5` fallback when offline
 - **Fleet-aware Ollama routing** — optional multi-node load balancing for embeddings
 
 ## Requirements
 
 - **Node.js 22+**
-- **[Ollama](https://ollama.ai/)** running locally (or on a remote host)
-- Required Ollama models:
+- **[Ollama](https://ollama.ai/)** running locally (or on a remote host; optional for deterministic tools and offline `FTS5` rule retrieval)
+- Recommended Ollama models:
   - `snowflake-arctic-embed2` — `8,192`-ctx `1024`-dim embedder for design rules and tokens (or configurable `EMBED_MODEL`)
-  - `qwen2.5-coder:1.5b` — for layout analysis and component style generation
+  - `qwen2.5-coder:7b` — for layout analysis and component style generation (or configurable `LLM_MODEL`)
 
 ```bash
 ollama pull snowflake-arctic-embed2
-ollama pull qwen2.5-coder:1.5b
+ollama pull qwen2.5-coder:7b
 ```
 
 ## Installation
@@ -47,7 +47,7 @@ npm install
 
 ### Seed the RAG store
 
-On first run, seed the database with 42 curated design rules:
+On first run, seed the database with 48 curated design rules:
 
 ```bash
 npm run seed
@@ -65,6 +65,7 @@ All configuration is via environment variables. Create a `.env` file or export t
 | `OLLAMA_NODES` | *(derived from OLLAMA_URL)* | Comma-separated `host:port` list for fleet routing |
 | `EMBED_MODEL` | `snowflake-arctic-embed2` | Ollama model for embeddings |
 | `EMBED_DIMENSION` | `1024` | Embedding vector dimension |
+| `LLM_MODEL` | `qwen2.5-coder:7b` | Ollama model for layout and component style generation |
 | `DEBUG` | `false` | Enable debug logging |
 
 ### Multi-node Ollama fleet
@@ -100,15 +101,15 @@ Add to your MCP client configuration:
 | `css_to_tailwind` | AST-based CSS → Tailwind class mapping (~230 entries + shorthand expansion) |
 | `generate_css_variables_from_figma` | Parse Figma JSON tokens into a CSS `:root` block with custom properties |
 | `generate_responsive_breakpoints` | CSS media query generation with customizable breakpoint widths |
-| `get_canonical_template` | Retrieve 12 authoritative HTML/SVG & `@krusch/toolkit` Lego templates (`article-shell`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`, `lego-node-api`, `lego-mcp-server`, `lego-sse-route`, `lego-react-shell`, `lego-fastapi-app`, `lego-cloudflare-worker`, `lego-webhook-route`) |
-| `list_canonical_templates` | List all 12 available canonical HTML/SVG brand primitives and Lego code starter templates |
+| `get_canonical_template` | Retrieve 16 authoritative HTML/SVG, Vercel Next.js/Edge, & `@krusch/toolkit` Lego templates (`article-shell`, `site-header`, `footer-deadbolt`, `deadbolt-svg`, `cyber-grid`, `nav-back`, `lego-node-api`, `lego-mcp-server`, `lego-sse-route`, `lego-react-shell`, `lego-fastapi-app`, `lego-cloudflare-worker`, `lego-webhook-route`, `lego-vercel-nextjs-shell`, `lego-vercel-edge-sse`, `lego-vercel-json`) |
+| `list_canonical_templates` | List all 16 available canonical HTML/SVG brand primitives, Vercel bricks, and Lego code starter templates |
 
-### RAG & Provenance Lineage (SQLite + sqlite-vec)
+### RAG & Provenance Lineage (SQLite FTS5 + sqlite-vec)
 
 | Tool | Description |
 |------|-------------|
 | `ingest_figma_tokens` | Embed and store Figma JSON tokens in the vector database |
-| `query_design_rules` | Semantic search over 42 curated design rules with optional paradigm filter |
+| `query_design_rules` | Hybrid semantic + lexical `BM25` search over 48 curated design rules with optional paradigm filter |
 | `frontend_get_provenance` | Trace version history and provenance of a design rule or token in SQLite |
 | `frontend_traverse_graph` | Traverse parent/child lineage graphs for frontend design rules |
 
@@ -125,11 +126,12 @@ The `query_design_rules` and `generate_component_styles` tools support an option
 
 - **`universal`** (35 rules) — WCAG accessibility, spacing scales, typography, color systems, layout patterns, animation timing
 - **`refactoring-ui`** (7 rules) — Heuristics from Refactoring UI: hierarchy through weight, de-emphasized borders, visual alignment
+- **`vercel`** (6 rules) — Vercel Next.js App Router SSR hydration safety (`useMounted`), unbuffered Edge SSE streaming (`force-dynamic`, `no-transform`), Web-Standards Edge runtime purity, zero-CLS font/SVG sizing, and `vercel.json` security headers
 
 ## Development
 
 ```bash
-# Run tests (27 cases)
+# Run tests (48 cases)
 npm test
 
 # Seed RAG store (idempotent)

@@ -20,6 +20,6 @@ export async function queryDesignRules(queryStr, paradigm = null) {
         throw new Error('Invalid query string');
     }
     const vec = await getEmbedding(trimmed);
-    const results = await searchDesignRules(vec, 5, 0.5, paradigm);
+    const results = await searchDesignRules(vec, 5, 0.5, paradigm, trimmed);
     return results.map(r => ({ rule: r.content, confidence: r.confidence }));
 }

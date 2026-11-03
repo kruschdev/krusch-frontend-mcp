@@ -174,7 +174,7 @@ const RAW_FRONTEND_TOOL_DEFINITIONS = [
             type: "object",
             properties: {
                 queryStr: { type: "string" },
-                paradigm: { type: "string", description: "Optional aesthetic paradigm to filter by (e.g. 'universal', 'refactoring-ui', 'apple-hig', 'material-design')" }
+                paradigm: { type: "string", description: "Optional aesthetic paradigm to filter by (e.g. 'universal', 'refactoring-ui', 'vercel', 'apple-hig', 'material-design')" }
             },
             required: ["queryStr"]
         }
@@ -214,7 +214,7 @@ const RAW_FRONTEND_TOOL_DEFINITIONS = [
                 },
                 paradigm: {
                     type: "string",
-                    description: "Optional aesthetic paradigm to filter RAG rules by (e.g. 'refactoring-ui', 'universal')"
+                    description: "Optional aesthetic paradigm to filter RAG rules by (e.g. 'refactoring-ui', 'universal', 'vercel')"
                 }
             },
             required: ["description"]

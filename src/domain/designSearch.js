@@ -12,6 +12,9 @@ import { searchProvider } from '../infrastructure/ragAdapter.js';
  * @param {string|null} [paradigm=null] - Optional paradigm filter.
  * @returns {Promise<Array<{content: string, confidence: number}>>}
  */
-export async function searchDesignRules(vec, k = 5, threshold = 0.5, paradigm = null) {
+export async function searchDesignRules(vec, k = 5, threshold = 0.5, paradigm = null, queryText = undefined) {
+    if (queryText !== undefined) {
+        return searchProvider(vec, k, threshold, paradigm, queryText);
+    }
     return searchProvider(vec, k, threshold, paradigm);
 }

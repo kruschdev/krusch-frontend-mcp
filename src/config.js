@@ -37,6 +37,11 @@ export const config = {
         dimension: parseInt(envOr('EMBED_DIMENSION', '1024'), 10),
     },
 
+    llm: {
+        model: envOr('LLM_MODEL', 'qwen2.5-coder:7b'),
+        timeoutMs: parseInt(envOr('LLM_TIMEOUT_MS', '30000'), 10),
+    },
+
     ollama: {
         /** Primary Ollama URL (used by LLM tools). */
         url: primaryOllamaUrl,

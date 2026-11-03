@@ -316,6 +316,112 @@ export function handleGithubWebhook({ req, rawBody, sendJson }) {
   }
   sendJson(200, okEnvelope('webhooks.github', 'Accepted GitHub event', { verified: true }));
 }`
+  },
+  'lego-vercel-nextjs-shell': {
+    description: 'Vercel Next.js App Router live dashboard shell with SSR-safe @krusch/toolkit/react hooks (useMounted, useAesthetics, useApiQuery, useSSEStream) and 13-point Deadbolt SVG.',
+    html: `'use client';
+
+import React from 'react';
+import {
+  AppShell,
+  MetricCard,
+  StatusPill,
+  useAesthetics,
+  useMounted,
+  useApiQuery,
+  useSSEStream
+} from '@krusch/toolkit/react';
+
+export default function VercelCockpitPage() {
+  const mounted = useMounted();
+  const theme = useAesthetics('cyber');
+  const { data, loading, reload } = useApiQuery('/api/status');
+  const stream = useSSEStream('/api/stream');
+
+  if (!mounted) {
+    return <div className={theme.bg} />;
+  }
+
+  return (
+    <AppShell
+      title="Krusch Live Cockpit"
+      subtitle="Vercel App Router + Sealed Lego Bricks"
+      status={loading ? 'streaming' : 'healthy'}
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <MetricCard title="Service" value={data?.service || 'online'} status="healthy" />
+        <MetricCard title="Latency" value={data?.latency || '<1ms'} status="healthy" />
+        <div className={theme.card}>
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className={theme.buttonPrimary}
+              onClick={() => stream.start({ prompt: 'verify' }).then(reload)}
+            >
+              Run Check
+            </button>
+            <StatusPill status={stream.status === 'streaming' ? 'streaming' : 'healthy'} />
+          </div>
+          <pre className="mt-3 text-xs text-zinc-300">{stream.text}</pre>
+        </div>
+      </div>
+    </AppShell>
+  );
+}`
+  },
+  'lego-vercel-edge-sse': {
+    description: 'Zero-node:* Vercel Edge / App Router Route Handler (app/api/stream/route.js) with Web-Standards SSE streaming and INV-LEGO-01 JSON envelopes via @krusch/toolkit/edge.',
+    html: `import { edgeSseResponse, edgeOkResponse, edgeCorsHeaders } from '@krusch/toolkit/edge';
+
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
+export async function GET(request) {
+  const corsHeaders = edgeCorsHeaders(request);
+  return edgeOkResponse(
+    'vercel.edge.status',
+    'Vercel Edge route online',
+    { runtime: 'edge', ready: true },
+    { corsHeaders }
+  );
+}
+
+export async function POST(request) {
+  const corsHeaders = edgeCorsHeaders(request);
+  return edgeSseResponse(
+    async (sse) => {
+      sse.sendToken('Edge stream connected');
+      sse.done('Stream complete', { runtime: 'edge' });
+    },
+    { request, tool: 'vercel.edge.stream', corsHeaders }
+  );
+}`
+  },
+  'lego-vercel-json': {
+    description: 'Hardened vercel.json deployment configuration with security headers (nosniff, DENY, strict-origin), zero-buffer SSE streaming headers, and clean URL routing.',
+    html: `{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Cache-Control", "value": "no-store, no-transform" },
+        { "key": "X-Accel-Buffering", "value": "no" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}`
   }
 };
 

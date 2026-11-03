@@ -137,6 +137,32 @@ const DESIGN_RULES = [
         content: 'Form labels should be positioned above inputs (not inline) for better scanning. Use font-size 14px, font-weight 500, and 4-8px margin-bottom between label and input.',
         metadata: { category: 'components', system: 'forms', priority: 'medium', paradigm: 'universal' }
     },
+
+    // ── Vercel & Next.js App Router / Edge Patterns ─────────────────────────
+    {
+        content: 'Vercel Next.js App Router hydration safety: client components reading browser-only state (window, matchMedia, localStorage, dynamic timestamps) must guard initial render with useMounted() or Suspense boundaries to prevent SSR hydration mismatch errors.',
+        metadata: { category: 'vercel', system: 'nextjs-app-router', priority: 'critical', paradigm: 'vercel' }
+    },
+    {
+        content: 'Vercel Server-Sent Events (SSE) and streaming Route Handlers must export dynamic = "force-dynamic" and return Cache-Control: no-store, no-transform and X-Accel-Buffering: no headers so Vercel Edge and proxy layers flush tokens immediately without buffering.',
+        metadata: { category: 'vercel', system: 'edge-streaming', priority: 'critical', paradigm: 'vercel' }
+    },
+    {
+        content: 'Vercel Edge Runtime routes (export const runtime = "edge") must use strictly Web-Standard globals (Request, Response, Headers, ReadableStream, crypto.randomUUID) and zero node:* imports (@krusch/toolkit/edge).',
+        metadata: { category: 'vercel', system: 'edge-runtime', priority: 'high', paradigm: 'vercel' }
+    },
+    {
+        content: 'Zero-CLS font and asset loading on Vercel: preload primary display and monospace fonts with font-display: swap, declare explicit width and height attributes on all SVG marks and images, and reserve fixed min-height skeletons for async metric cards.',
+        metadata: { category: 'vercel', system: 'core-web-vitals', priority: 'high', paradigm: 'vercel' }
+    },
+    {
+        content: 'High-contrast live telemetry dashboards on Vercel should pair dark zinc surfaces (#09090b / bg-zinc-950) with semantic status pills (emerald for 0/0/0 verified pass, amber for in-flight staging, rose/red with icon + text label for breaker trips) so state is unmistakable at 15 feet.',
+        metadata: { category: 'vercel', system: 'telemetry-ui', priority: 'high', paradigm: 'vercel' }
+    },
+    {
+        content: 'Vercel Preview & Production deployment security: configure vercel.json with X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy: strict-origin-when-cross-origin, and never expose server-only API keys in NEXT_PUBLIC_* environment variables.',
+        metadata: { category: 'vercel', system: 'security-headers', priority: 'critical', paradigm: 'vercel' }
+    },
 ];
 
 seedRules(DESIGN_RULES, 'baseline design', true).catch(e => {
