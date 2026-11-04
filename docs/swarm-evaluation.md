@@ -4,7 +4,7 @@
 Evaluate how the `krusch-frontend-mcp` tools perform in a complex, multi-agent "swarm" scenario by chaining deterministic logic, RAG queries, and LLM reasoning through a unified MCP Client pipeline.
 
 ## Execution
-We developed a test script (`scripts/evaluate-swarm.js`) that simulates the sequential operations of three distinct agents:
+I developed a test script (`scripts/evaluate-swarm.js`) that simulates the sequential operations of three distinct agents:
 1. **Agent 1 (Designer)**: Queries `query_design_rules` for brand guidelines and invokes `generate_color_palette`.
 2. **Agent 2 (Frontend Layout)**: Proposes raw HTML and passes it to `analyze_layout_structure`.
 3. **Agent 3 (Component Stylist)**: Calls `generate_component_styles` to apply aesthetic intent.
