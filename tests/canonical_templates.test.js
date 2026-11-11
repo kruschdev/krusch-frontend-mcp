@@ -99,5 +99,39 @@ test('MCP Server: all 12 tools declare explicit boolean behavioral annotations, 
   const listNullArgs = await dispatchFrontendTool({ params: { name: 'list_canonical_templates', arguments: null } });
   assert.notStrictEqual(listNullArgs.isError, true);
   assert.ok(JSON.parse(listNullArgs.content[0].text).length >= 15);
+
+  // Full 12/12 MCP tool dispatch & registry coverage
+  const expectedToolNames = [
+    'generate_color_palette',
+    'css_to_tailwind',
+    'ingest_figma_tokens',
+    'generate_css_variables_from_figma',
+    'query_design_rules',
+    'analyze_layout_structure',
+    'generate_component_styles',
+    'generate_responsive_breakpoints',
+    'frontend_get_provenance',
+    'frontend_traverse_graph',
+    'get_canonical_template',
+    'list_canonical_templates'
+  ];
+  for (const name of expectedToolNames) {
+    assert.ok(FRONTEND_TOOL_DEFINITIONS.some((t) => t.name === name), `Expected tool ${name}`);
+  }
+
+  const palRes = await dispatchFrontendTool({ params: { name: 'generate_color_palette', arguments: { baseHex: '#00F5D4' } } });
+  assert.notStrictEqual(palRes.isError, true);
+
+  const twRes = await dispatchFrontendTool({ params: { name: 'css_to_tailwind', arguments: { cssString: 'display: flex;' } } });
+  assert.notStrictEqual(twRes.isError, true);
+
+  const cssVarRes = await dispatchFrontendTool({
+    params: { name: 'generate_css_variables_from_figma', arguments: { tokensJsonStr: JSON.stringify({ primary: { value: '#00F5D4' } }) } }
+  });
+  assert.notStrictEqual(cssVarRes.isError, true);
+  assert.ok(cssVarRes.content[0].text.includes(':root'));
+
+  const tplCallRes = await dispatchFrontendTool({ params: { name: 'get_canonical_template', arguments: { templateKey: 'deadbolt-svg' } } });
+  assert.notStrictEqual(tplCallRes.isError, true);
 });
 
