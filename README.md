@@ -39,6 +39,16 @@ ollama pull qwen2.5-coder:7b
 
 ## Installation
 
+### Agent-Assisted Setup
+
+Ask your coding agent (Claude Code, Codex, Cursor, Windsurf, or Antigravity):
+
+```text
+Read https://raw.githubusercontent.com/kruschdev/krusch-frontend-mcp/main/INSTALL.md and set up krusch-frontend-mcp on this machine.
+```
+
+### Manual Setup
+
 ```bash
 git clone https://github.com/kruschdev/krusch-frontend-mcp.git
 cd krusch-frontend-mcp
