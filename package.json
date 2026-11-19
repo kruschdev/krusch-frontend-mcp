@@ -1,6 +1,6 @@
 {
   "name": "krusch-frontend-mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "AI-powered frontend design & styling MCP server — deterministic HSL/WCAG color math, AST CSS-to-Tailwind compiler, Figma token parser, canonical HTML/SVG component templates, and sqlite-vec RAG design rule retrieval.",
   "type": "module",
   "main": "src/index.js",
@@ -52,5 +52,6 @@
     "hono": "^4.13.11",
     "@hono/node-server": "^2.1.3",
     "decode-uri-component": "^0.5.1"
-  }
+  },
+  "mcpName": "dev.krusch/krusch-frontend-mcp"
 }
